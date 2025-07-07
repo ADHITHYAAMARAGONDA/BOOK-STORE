@@ -1,0 +1,41 @@
+->To run this
+go to backend->node index.js(run this ) you will get App connected to database
+App is listening to port: 5555 .Also go to atlas and connect your project else it will show error 
+
+->after that create one more terminal for frontend and go to frontend and run npm run dev ,your app will be opened in browser where you can perform operations.
+
+This is the sample folder structure:
+
+├── 📁 backend/
+│   ├── 📄 index.js
+│   ├── 📄 config.js
+│   ├── 📄 package.json
+│   ├── 📁 models/
+│   │   └── 📄 bookModel.js
+│   ├── 📁 routes/
+│   │   └── 📄 booksRoutes.js
+│   └── 📁 node_modules/  (auto-generated)
+│
+├── 📁 frontend/
+│   ├── 📄 package.json
+│   ├── 📄 vite.config.js
+│   └── 📁 src/
+│       ├── 📄 App.jsx
+│       ├── 📄 App.css
+│       ├── 📄 index.css
+│       ├── 📄 main.jsx
+│       ├── 📁 assets/
+│       ├── 📁 components/
+│       │   ├── 📄 BackButton.jsx
+│       │   ├── 📄 Spinner.jsx
+│       │   └── 📁 home/
+│       │       ├── 📄 BookModal.jsx
+│       │       ├── 📄 BooksCard.jsx
+│       │       ├── 📄 BooksSingleCard.jsx
+│       │       └── 📄 BooksTable.jsx
+│       └── 📁 pages/
+│           ├── 📄 CreateBooks.jsx
+│           ├── 📄 DeleteBook.jsx
+│           ├── 📄 EditBook.jsx
+│           ├── 📄 Home.jsx
+│           └── 📄 ShowBook.jsx
