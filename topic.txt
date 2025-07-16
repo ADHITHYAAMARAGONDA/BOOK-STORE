@@ -126,3 +126,8 @@ Just tell me:
 
 Or say:
 “Give me a task list to upgrade my MERN Bookstore project” and I’ll break it down for you.
+
+
+IMP::
+localStorage.clear(); //THIS COMMAND IS USED IN CONSOLE WHENEVER YOU DIRECTLY NAVIGATE TO OUR PROJECT WITHOUT ASKING TO REGISTER/SIGNIN
+IT WILL REMOVE LOCALLY STOTRED JWT TOKEN AND REDIRECTS TO SGNIN PAGE.

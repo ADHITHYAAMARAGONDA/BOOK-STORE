@@ -27,11 +27,11 @@ app.use("/auth", authRoute); // ✅ Add this line for /auth/signup and /auth/log
 mongoose
   .connect(mongoDBURL)
   .then(() => {
-    console.log("✅ App connected to database");
+    console.log("-> App connected to database");
     app.listen(PORT, () => {
-      console.log(`🚀 App is listening on port: ${PORT}`);
+      console.log(`-> App is listening on port: ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("❌ Failed to connect to MongoDB:", error);
+    console.error("-> Failed to connect to MongoDB:", error);
   });
