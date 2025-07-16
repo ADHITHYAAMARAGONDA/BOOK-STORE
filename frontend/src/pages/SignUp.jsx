@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axios from "../utils/axiosInstance"; // ✅ use the same axios instance
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -16,18 +16,20 @@ const SignUp = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5555/auth/signup", formData);
+      await axios.post("/auth/signup", formData); // ✅ relative path
       alert("✅ Registered successfully! Please Sign In.");
       window.location.href = "/signin";
     } catch (error) {
-      alert("Registration failed. Try again.");
+      console.error("Sign up error:", error.response?.data || error.message);
+      alert(
+        error.response?.data?.message || "❌ Registration failed. Try again."
+      );
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-100 to-blue-100">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-        {/* Left: Form */}
         <div className="w-full md:w-1/2 p-8">
           <h2 className="text-3xl font-bold text-blue-700 mb-4 text-center">
             Sign Up
@@ -85,7 +87,6 @@ const SignUp = () => {
           </form>
         </div>
 
-        {/* Right: Image + Text */}
         <div className="hidden md:flex md:w-1/2 items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 p-6">
           <div className="text-center">
             <h2 className="mt-4 text-2xl font-bold text-white">Welcome to</h2>

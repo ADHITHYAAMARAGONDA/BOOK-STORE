@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance"; // ✅ clear name
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -15,13 +15,16 @@ const SignIn = () => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5555/auth/login",
-        formData
-      );
-      localStorage.setItem("token", res.data.token);
-      alert("✅ Signed in successfully!");
-      window.location.href = "/";
+      const res = await axiosInstance.post("/auth/login", formData);
+      const token = res.data.token;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        alert("✅ Signed in successfully!");
+        window.location.href = "/"; // or navigate("/") if using useNavigate
+      } else {
+        throw new Error("Token not received");
+      }
     } catch (error) {
       console.error("Sign in error:", error.response?.data || error.message);
       alert(error.response?.data?.message || "❌ Sign In failed. Try again.");
