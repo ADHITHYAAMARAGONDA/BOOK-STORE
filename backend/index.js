@@ -53,7 +53,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // your local frontend URL
-      "https://your-deployed-frontend-url", // replace this with your actual deployed frontend URL (e.g. your Vercel URL)
+      "https://book-store-ziyd.vercel.app", // replace this with your actual deployed frontend URL (e.g. your Vercel URL)
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
