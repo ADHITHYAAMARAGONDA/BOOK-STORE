@@ -131,3 +131,5 @@ Or say:
 IMP::
 localStorage.clear(); //THIS COMMAND IS USED IN CONSOLE WHENEVER YOU DIRECTLY NAVIGATE TO OUR PROJECT WITHOUT ASKING TO REGISTER/SIGNIN
 IT WILL REMOVE LOCALLY STOTRED JWT TOKEN AND REDIRECTS TO SGNIN PAGE.
+
+features->flow->Home(what are avilabloe in home)->and same link what you are doing->profile(..)->payment....
