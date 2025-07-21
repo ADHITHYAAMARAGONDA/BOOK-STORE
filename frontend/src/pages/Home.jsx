@@ -89,8 +89,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import Spinner from "../components/Spinner";
-import BooksTable from "../components/home/BooksTable";
-import BooksCard from "../components/home/BooksCard";
+import BooksTable from "../components/Home/BooksTable";
+import BooksCard from "../components/Home/BooksCard";
 import { MdOutlineAddBox } from "react-icons/md";
 import { TbBook2 } from "react-icons/tb";
 
