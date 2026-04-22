@@ -1,0 +1,297 @@
+DevOps Project Report
+Kubernetes-Based Deployment and Monitoring of a
+MERN Stack Online Bookstore Application
+Course: INT334 - Enterprise Application Automation
+Session: 2025-26
+GitHub Repository: https://github.com/ADHITHYAAMARAGONDA/BOOK-STORE
+ 
+1. Project Overview
+This project demonstrates the complete DevOps lifecycle applied to a real-world MERN (MongoDB, Express, React, Node.js) stack Online Bookstore application. The project covers containerization using Docker, orchestration using Kubernetes (Minikube), and real-time monitoring using Prometheus and Grafana.
+The application was originally deployed locally on a development machine. Through this project, it has been transformed into a production-grade, self-healing, auto-scaling, and fully monitored cloud-native application.
+
+2. Problem Statement & Solution
+2.1 Problem Statement
+Traditional MERN stack applications face several challenges in production environments:
+•	No fault tolerance — if the server crashes, the app goes down completely
+•	No auto-scaling — cannot handle sudden traffic spikes
+•	No visibility — no way to monitor CPU, memory, or pod health in real time
+•	Manual deployment — every update requires manual intervention
+•	No alerting — no notifications when something goes wrong
+2.2 Solution
+By applying DevOps tools — Docker, Kubernetes, Prometheus, and Grafana — we solved all the above problems:
+•	Docker: Packages the app into portable containers that run anywhere
+•	Kubernetes: Manages containers, provides self-healing and auto-scaling
+•	Prometheus: Collects real-time metrics from all pods
+•	Grafana: Visualizes metrics in beautiful dashboards
+•	Alertmanager: Sends alerts when pods crash or resource usage spikes
+
+3. Technologies Used
+
+Technology	Version	Purpose
+Node.js	v24.15.0	Backend JavaScript runtime
+Express.js	Latest	Backend REST API framework
+React.js	Latest	Frontend UI library
+MongoDB Atlas	Cloud	Database (hosted on cloud)
+Docker	Latest	Containerization of frontend and backend
+Docker Hub	Cloud	Container image registry
+Minikube	v1.38.1	Local Kubernetes cluster
+Kubernetes	v1.35.1	Container orchestration
+Helm	Latest	Kubernetes package manager
+Prometheus	v0.90.1	Metrics collection and monitoring
+Grafana	v2.7.0	Dashboard and visualization
+Alertmanager	Latest	Alert routing and notifications
+Nginx	Alpine	Frontend web server inside container
+Tailwind CSS	Latest	Frontend styling
+
+ 
+4. Project Architecture
+The application follows a microservices-inspired architecture deployed inside a Kubernetes cluster:
+Architecture Flow:
+•	User Browser sends HTTP requests to the Frontend Service (NodePort)
+•	Frontend (React + Nginx) is served by 2 pods for redundancy
+•	Frontend communicates with Backend via Backend Service (ClusterIP)
+•	Backend (Node.js + Express) runs in 2 pods with auto-scaling up to 5
+•	Backend connects to MongoDB Atlas (cloud database) for data storage
+•	Prometheus scrapes metrics from all pods every 30 seconds
+•	Grafana reads from Prometheus and displays real-time dashboards
+•	Alertmanager fires alerts when pod health or resources are abnormal
+Kubernetes Namespace Structure:
+Namespace	Components
+bookstore	Frontend Deployment (2 pods), Backend Deployment (2 pods), Services, HPA
+default	Prometheus, Grafana, Alertmanager, Kube State Metrics, Node Exporter
+
+ 
+5. Step-by-Step Implementation
+PHASE 1: Cloning and Setting Up the Application
+Step 1: Clone the Repository
+The MERN stack bookstore application was cloned from GitHub using a sparse checkout to avoid downloading node_modules (which were accidentally committed to the repo):
+git clone --depth 1 --filter=blob:none --sparse https://github.com/ADHITHYAAMARAGONDA/BOOK-STORE.git
+cd BOOK-STORE
+git sparse-checkout set backend frontend
+Why sparse checkout? The repository had node_modules committed (1192 objects), making a normal clone extremely slow. Sparse checkout downloads only the backend/ and frontend/ folders we actually need.
+Step 2: Install Dependencies and Test Locally
+Before Dockerizing, we verified the application works locally:
+cd backend
+npm install mongoose express cors bcryptjs jsonwebtoken dotenv
+node --dns-result-order=ipv4first index.js
+Why --dns-result-order=ipv4first? Node.js v24 has a change in DNS resolution order that caused issues with MongoDB Atlas SRV records. This flag forces IPv4 DNS resolution first, which fixes the connection issue.
+The backend runs on PORT 5555 as defined in config.js. The frontend runs on PORT 5173 (Vite default).
+ 
+PHASE 2: Dockerization
+Step 3: Create Backend Dockerfile
+A Dockerfile is a script that tells Docker how to build a container image for the application. It defines the base image, working directory, dependencies, and startup command.
+Backend Dockerfile (backend/Dockerfile):
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 5555
+CMD ["node", "--dns-result-order=ipv4first", "index.js"]
+Explanation of each line:
+•	FROM node:18-alpine — Uses Node.js 18 on Alpine Linux (lightweight, only 5MB base image)
+•	WORKDIR /app — Sets the working directory inside the container
+•	COPY package*.json ./ — Copies package files first (Docker layer caching optimization)
+•	RUN npm install — Installs all dependencies inside the container
+•	COPY . . — Copies all source code into the container
+•	EXPOSE 5555 — Declares the port the app listens on
+•	CMD — The command to run when the container starts
+Step 4: Create Frontend Dockerfile
+The frontend uses a multi-stage build — first builds the React app, then serves it with Nginx (a lightweight web server):
+Frontend Dockerfile (frontend/Dockerfile):
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+Why multi-stage build? The first stage (node:18-alpine) builds the React app into static files. The second stage (nginx:alpine) serves those static files. This makes the final image much smaller because Node.js is not included in the final image — only Nginx and the built HTML/CSS/JS files.
+Step 5: Create .dockerignore Files
+Created .dockerignore in both backend/ and frontend/ folders to prevent node_modules from being copied into the Docker image (we install them fresh inside Docker):
+node_modules
+.env
+Step 6: Build and Push Docker Images
+Built Docker images locally and pushed them to Docker Hub (a public container registry):
+docker login
+docker build -t adhithya143/bookstore-backend:v1 ./backend
+docker push adhithya143/bookstore-backend:v1
+docker build -t adhithya143/bookstore-frontend:v1 ./frontend
+docker push adhithya143/bookstore-frontend:v1
+Why Docker Hub? Kubernetes needs to pull container images from a registry. Docker Hub is free and publicly accessible. When Kubernetes deploys pods, it pulls the images from Docker Hub automatically.
+ 
+PHASE 3: Kubernetes Deployment
+Step 7: Start Minikube
+Minikube creates a local single-node Kubernetes cluster inside Docker:
+minikube start --driver=docker --memory=4096 --cpus=2
+Why Minikube? For learning and development, we use Minikube instead of a real cloud cluster (AWS EKS, GCP GKE). It gives us a full Kubernetes environment on our laptop for free.
+Step 8: Create Kubernetes Namespace
+A namespace is a virtual cluster inside Kubernetes that isolates our bookstore resources from other applications:
+# k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookstore
+
+kubectl apply -f k8s/namespace.yaml
+Step 9: Deploy Backend
+The backend-deployment.yaml creates a Deployment (manages pods) and a Service (network access to pods):
+•	Deployment: Runs 2 replicas of the backend pod for redundancy
+•	Service (ClusterIP): Exposes the backend internally within the cluster on port 5555
+•	Resource limits: CPU max 500m (0.5 cores), Memory max 256Mi
+•	Resource requests: CPU 100m, Memory 128Mi (guaranteed minimums)
+Step 10: Deploy Frontend
+The frontend-deployment.yaml deploys the React app served by Nginx:
+•	Deployment: Runs 2 replicas of the frontend pod
+•	Service (NodePort): Exposes the frontend externally so users can access it from browser
+•	Port 80: Nginx serves the React app on port 80 inside the container
+Step 11: Configure Horizontal Pod Autoscaler (HPA)
+HPA automatically scales the number of backend pods based on CPU usage:
+•	minReplicas: 2 — always keeps at least 2 backend pods running
+•	maxReplicas: 5 — can scale up to 5 pods when traffic increases
+•	averageUtilization: 70 — scales up when CPU exceeds 70%
+Why HPA? In real production, traffic is unpredictable. HPA ensures the app can handle sudden traffic spikes by automatically adding more pods, and scales back down when traffic reduces to save resources.
+Step 12: Apply All Kubernetes Manifests
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/backend-deployment.yaml
+kubectl apply -f k8s/frontend-deployment.yaml
+kubectl apply -f k8s/hpa.yaml
+kubectl get pods -n bookstore
+ 
+PHASE 4: Monitoring with Prometheus and Grafana
+Step 13: Install kube-prometheus-stack via Helm
+Helm is the package manager for Kubernetes (like npm for Node.js). The kube-prometheus-stack Helm chart installs Prometheus, Grafana, and Alertmanager together in one command:
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install monitoring prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+This single command installs: Prometheus Operator, Prometheus Server, Grafana, Alertmanager, Node Exporter (hardware metrics), Kube State Metrics (Kubernetes object metrics).
+Step 14: Access Grafana Dashboard
+kubectl port-forward svc/monitoring-grafana 3000:80
+Port-forwarding tunnels traffic from localhost:3000 to the Grafana service inside the cluster. Grafana credentials: admin / prom-operator.
+Imported Kubernetes Pod dashboard (ID: 15760) which shows real-time metrics for all pods in the bookstore namespace including CPU usage, memory usage, pod status, and resource requests/limits.
+Step 15: Access Prometheus
+kubectl port-forward svc/prometheus-operated 9090:9090
+Prometheus is accessible at http://localhost:9090. Used PromQL query to verify bookstore pod monitoring:
+container_memory_usage_bytes{namespace="bookstore"}
+This query returned real-time memory usage for all 4 bookstore pods (2 backend + 2 frontend), confirming Prometheus is successfully scraping metrics.
+Step 16: Configure Alert Rules
+Created custom Prometheus alert rules for the bookstore application (k8s/alertmanager-rules.yaml):
+•	PodDown Alert: Fires when any pod in the bookstore namespace is not ready for more than 1 minute
+•	HighMemoryUsage Alert: Fires when any pod consumes more than 200MB of memory
+•	HighCPUUsage Alert: Fires when CPU usage exceeds 80% for more than 1 minute
+kubectl apply -f k8s/alertmanager-rules.yaml
+
+ 
+6. Key Demonstrations
+6.1 Self-Healing Demo
+This is the most important Kubernetes demonstration. When pods are forcefully deleted, Kubernetes automatically recreates them:
+# Delete both backend pods
+kubectl delete pod -l app=backend -n bookstore
+
+# Immediately check - new pods already being created
+kubectl get pods -n bookstore
+Result: Within 10 seconds, Kubernetes automatically created 2 brand new backend pods to replace the deleted ones. The frontend continued running without any interruption. This demonstrates Kubernetes self-healing capability.
+6.2 Real-Time Monitoring
+Grafana dashboard (ID: 15760) shows:
+•	All 4 bookstore pods (2 backend + 2 frontend) with their status
+•	Memory usage: Backend pods using ~36MB each, Frontend pods using ~10MB each
+•	CPU requests and limits for each container
+•	Pod IP addresses and which node they run on
+•	ReplicaSet information showing which deployment manages each pod
+6.3 Prometheus Metrics
+Live metrics verified in Prometheus for all bookstore pods:
+•	bookstore-backend pod 1: 36,331,520 bytes (36MB) memory
+•	bookstore-backend pod 2: 36,212,736 bytes (36MB) memory
+•	bookstore-frontend pod 1: 10,993,664 bytes (10MB) memory
+•	bookstore-frontend pod 2: 11,091,968 bytes (10MB) memory
+
+ 
+7. Important kubectl Commands Reference
+Command	Purpose
+kubectl get pods -n bookstore	List all bookstore pods and their status
+kubectl get services -n bookstore	List all services in bookstore namespace
+kubectl get deployments -n bookstore	List all deployments
+kubectl get hpa -n bookstore	Check autoscaling status
+kubectl describe pod <name> -n bookstore	Detailed info about a specific pod
+kubectl logs <pod-name> -n bookstore	View logs of a pod
+kubectl delete pod -l app=backend -n bookstore	Delete backend pods (self-healing demo)
+kubectl apply -f k8s/	Apply all YAML files in k8s folder
+minikube service frontend-service -n bookstore	Open bookstore in browser
+kubectl port-forward svc/monitoring-grafana 3000:80	Access Grafana dashboard
+kubectl port-forward svc/prometheus-operated 9090:9090	Access Prometheus UI
+kubectl get pods -n default | findstr monitoring	Check monitoring stack status
+helm list --all-namespaces	List all Helm releases
+
+ 
+8. Final Project Folder Structure
+BOOK-STORE/
+├── backend/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── config.js          ← MongoDB connection & port config
+│   ├── index.js           ← Main backend entry point
+│   ├── Dockerfile         ← Docker instructions for backend
+│   └── .dockerignore      ← Excludes node_modules from Docker
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── Dockerfile         ← Multi-stage Docker build for React
+│   └── .dockerignore
+└── k8s/
+    ├── namespace.yaml          ← Creates bookstore namespace
+    ├── backend-deployment.yaml ← Backend pods + ClusterIP service
+    ├── frontend-deployment.yaml← Frontend pods + NodePort service
+    ├── hpa.yaml                ← Horizontal Pod Autoscaler
+    └── alertmanager-rules.yaml ← Prometheus alert rules
+
+ 
+9. Viva Questions & Answers
+Q1: What is Docker and why did you use it?
+Docker is a containerization platform that packages an application and all its dependencies into a container. A container is a lightweight, standalone, executable package that includes everything needed to run the application: code, runtime, libraries, and configuration.
+We used Docker because: (1) It eliminates the 'works on my machine' problem, (2) Containers are portable — run on any OS, (3) Kubernetes requires containerized applications to manage them.
+Q2: What is Kubernetes and what problem does it solve?
+Kubernetes (K8s) is an open-source container orchestration platform that automates deployment, scaling, and management of containerized applications. It solves problems like: (1) Self-healing — automatically restarts crashed containers, (2) Auto-scaling — adds/removes pods based on load, (3) Load balancing — distributes traffic across pods, (4) Rolling updates — deploys new versions without downtime.
+Q3: What is a Pod in Kubernetes?
+A Pod is the smallest deployable unit in Kubernetes. It contains one or more containers that share the same network namespace and storage. In our project, each pod contains one container — either the bookstore backend or frontend. We run 2 replicas of each for high availability.
+Q4: What is a Deployment in Kubernetes?
+A Deployment is a Kubernetes object that manages a set of identical pods. It ensures the desired number of pod replicas are always running. If a pod crashes, the Deployment automatically creates a new one to replace it. We created two Deployments — one for backend (2 replicas) and one for frontend (2 replicas).
+Q5: What is the difference between ClusterIP and NodePort services?
+ClusterIP: Exposes the service only within the cluster. Used for internal communication between pods (e.g., frontend talking to backend). NodePort: Exposes the service on a static port on each node, accessible from outside the cluster. Used for the frontend service so users can access the bookstore from their browser.
+Q6: What is HPA (Horizontal Pod Autoscaler)?
+HPA automatically scales the number of pod replicas based on CPU or memory usage. In our project, the backend HPA is configured with minReplicas=2, maxReplicas=5, and CPU target=70%. If backend CPU exceeds 70%, Kubernetes automatically adds more backend pods (up to 5) to handle the load.
+Q7: What is Prometheus and how does it work?
+Prometheus is an open-source monitoring and alerting toolkit. It works by scraping (pulling) metrics from configured targets at regular intervals (every 30 seconds in our setup). It stores metrics as time-series data. In our project, Prometheus scrapes metrics from all Kubernetes pods, nodes, and the Kubernetes API server itself.
+Q8: What is Grafana and how is it connected to Prometheus?
+Grafana is an open-source visualization platform that creates dashboards from various data sources. It connects to Prometheus as a data source and uses PromQL (Prometheus Query Language) to query metrics. We imported dashboard ID 15760 which automatically creates panels for CPU, memory, pod status, and resource usage.
+Q9: What is Helm and why did you use it?
+Helm is the package manager for Kubernetes, similar to npm for Node.js or apt for Linux. It allows you to install complex Kubernetes applications with a single command using pre-configured Helm charts. We used the kube-prometheus-stack Helm chart which installs Prometheus, Grafana, and Alertmanager together automatically.
+Q10: What is self-healing in Kubernetes? Can you demonstrate it?
+Self-healing is Kubernetes' ability to automatically detect and recover from failures. When a pod crashes or is deleted, the Deployment controller detects the discrepancy between desired state (2 replicas) and actual state (1 replica) and immediately creates a new pod.
+Demo: kubectl delete pod -l app=backend -n bookstore → kubectl get pods -n bookstore → New pods appear within 10 seconds automatically.
+Q11: What are the alert rules you configured?
+We configured three alert rules using PrometheusRule CRD: (1) PodDown — fires when any bookstore pod is not ready for more than 1 minute, (2) HighMemoryUsage — fires when memory exceeds 200MB, (3) HighCPUUsage — fires when CPU exceeds 80% for more than 1 minute.
+Q12: What is the difference between Minikube and EKS?
+Minikube is a local, single-node Kubernetes cluster for development and learning — it runs on your laptop for free. Amazon EKS (Elastic Kubernetes Service) is a managed Kubernetes service on AWS for production workloads — it runs on AWS infrastructure, supports multiple nodes, high availability, and integrates with AWS services like ALB, EBS, and IAM.
+
+ 
+10. Project Outcomes
+Outcome	Status	Details
+Application Containerized	Completed	Docker images built and pushed to Docker Hub
+Kubernetes Deployment	Completed	4 pods running in bookstore namespace
+Self-Healing	Verified	Pods auto-recreated after deletion within 10 seconds
+Auto-Scaling	Configured	HPA scales backend from 2 to 5 pods based on CPU
+Prometheus Monitoring	Active	Scraping metrics from all 4 bookstore pods
+Grafana Dashboard	Imported	Dashboard ID 15760 showing real-time pod metrics
+Alert Rules	Configured	PodDown, HighMemory, HighCPU alerts defined
+Application Accessible	Working	Bookstore opens via minikube service command
+
+11. Conclusion
+This project successfully demonstrated the complete DevOps lifecycle for a MERN stack Online Bookstore application. Starting from a simple locally-run application, we transformed it into a production-grade, cloud-native application using industry-standard DevOps tools.
+Key achievements include containerizing the application with Docker, deploying it on Kubernetes with self-healing and auto-scaling capabilities, and implementing comprehensive real-time monitoring with Prometheus and Grafana with custom alert rules.
+The project covers all six course outcomes: understanding containerization (CO1), demonstrating Kubernetes deployment (CO2), analyzing networking and scaling (CO3), understanding Prometheus/Grafana (CO4), executing dashboards and alerting (CO5), and evaluating automation trends (CO6).
