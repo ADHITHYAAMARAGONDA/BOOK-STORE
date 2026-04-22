@@ -36,9 +36,12 @@
 //     console.error("-> Failed to connect to MongoDB:", error);
 //   });
 
+import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+
 
 import { PORT, mongoDBURL } from "./config.js";
 import booksRoute from "./routes/booksRoute.js";
