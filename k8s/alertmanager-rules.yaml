@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: bookstore-alerts
+  namespace: default
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: bookstore.rules
+    rules:
+    - alert: PodDown
+      expr: kube_pod_status_ready{namespace="bookstore", condition="true"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod is down"
+        description: "A pod in bookstore namespace is not ready"
+
+    - alert: HighMemoryUsage
+      expr: container_memory_usage_bytes{namespace="bookstore"} > 200000000
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage"
+        description: "A bookstore pod is using more than 200MB memory"
+
+    - alert: HighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{namespace="bookstore"}[5m]) > 0.8
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage"
+        description: "A bookstore pod CPU usage is above 80%"
