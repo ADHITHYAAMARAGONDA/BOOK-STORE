@@ -1,0 +1,56 @@
+Here's your complete resume content for this project:
+
+Project Section for Resume
+Kubernetes-Based Deployment & Monitoring of MERN Stack Online Bookstore DevOps | Docker | Kubernetes | Prometheus | Grafana | Node.js | React | MongoDB GitHub: github.com/ADHITHYAAMARAGONDA/BOOK-STORE
+
+One-Line Summary (for resume header under project name)
+Containerized and deployed a full-stack MERN bookstore application on Kubernetes with real-time monitoring, auto-scaling, self-healing, and alerting using Prometheus and Grafana.
+
+Bullet Points (use 6–8 of these under the project)
+Containerized a full-stack MERN (MongoDB, Express, React, Node.js) Online Bookstore application using Docker, creating optimized multi-stage Dockerfiles for both frontend (React + Nginx) and backend (Node.js) services, reducing final image size significantly by separating build and runtime stages
+Deployed the application on a Kubernetes (Minikube) cluster with 4 running pods (2 backend + 2 frontend replicas) using YAML manifests for Deployments, Services (ClusterIP & NodePort), Namespaces, and Horizontal Pod Autoscaler (HPA)
+Configured Horizontal Pod Autoscaler (HPA) to automatically scale backend pods from 2 to 5 replicas when CPU utilization exceeds 70%, ensuring the application handles traffic spikes without manual intervention
+Demonstrated Kubernetes self-healing by forcefully deleting running pods and verifying automatic recreation within 10 seconds, proving fault tolerance and zero-downtime recovery
+Installed and configured the full kube-prometheus-stack monitoring suite via Helm (single command deployment), including Prometheus, Grafana, Alertmanager, Node Exporter, and Kube State Metrics
+Built real-time Grafana dashboards (Dashboard ID: 15760) connected to Prometheus as data source, visualizing live CPU usage, memory consumption, pod status, resource requests/limits, and pod IP addresses across all bookstore pods
+Wrote PromQL queries in Prometheus to monitor container memory usage per pod — verified backend pods consuming ~36MB and frontend pods consuming ~10MB in real time
+Configured 3 custom PrometheusRule alert rules (PodDown — Critical, HighMemoryUsage — Warning at 200MB, HighCPUUsage — Warning at 80%) deployed as Kubernetes CRD resources using kubectl
+Pushed Docker images to Docker Hub (adhithya143/bookstore-backend:v1, adhithya143/bookstore-frontend:v1) making them publicly accessible for Kubernetes to pull during pod deployment
+Built a secure REST API backend with JWT authentication, 8 protected API endpoints (CRUD operations for books and users), connected to MongoDB Atlas cloud database with Mongoose ODM
+Managed the entire DevOps pipeline from code to deployment: Git sparse clone → Dockerize → Push to registry → Kubernetes deployment → Helm monitoring stack → Alert configuration
+Skills Demonstrated (add these to your Skills section)
+DevOps & Cloud: Docker, Kubernetes (Minikube), Helm, Prometheus, Grafana, Alertmanager, PromQL, kubectl, YAML manifests, Docker Hub, Container Orchestration, Horizontal Pod Autoscaling, CI/CD concepts
+
+Full Stack: React.js, Node.js, Express.js, MongoDB Atlas, Mongoose, REST API, JWT Authentication, Tailwind CSS, Axios, Nginx
+
+Tools & Platforms: Git, GitHub, VS Code, Postman, MongoDB Atlas, Docker Desktop, Minikube
+
+Project Metrics (add these as numbers — recruiters love numbers)
+Metric	Value
+Total Kubernetes Pods	4 (2 backend + 2 frontend)
+Auto-scale range	2 → 5 pods (HPA)
+Self-healing time	< 10 seconds
+Prometheus scrape interval	Every 30 seconds
+Alert rules configured	3 (Critical + Warning)
+Docker images pushed	2 (backend + frontend)
+API endpoints	8 (protected with JWT)
+Monitoring tools	5 (Prometheus, Grafana, Alertmanager, Node Exporter, Kube State Metrics)
+Short Version (if resume has limited space — use only 4 bullets)
+Containerized a MERN stack bookstore using Docker with multi-stage builds and deployed on Kubernetes (Minikube) with 4 pods, namespaces, ClusterIP/NodePort services, and Horizontal Pod Autoscaler (2–5 replicas based on 70% CPU threshold)
+Demonstrated Kubernetes self-healing — deleted running pods and verified automatic recreation within 10 seconds with zero application downtime
+Installed full monitoring stack via Helm (kube-prometheus-stack); built Grafana dashboards showing real-time CPU, memory, and pod health; wrote PromQL queries verifying live metrics from all 4 pods
+Configured 3 Prometheus alert rules (PodDown, HighMemory, HighCPU) as Kubernetes CRDs; pushed Docker images to Docker Hub; managed end-to-end DevOps pipeline from containerization to production-grade monitoring
+How to List it on Resume
+PROJECTS
+─────────────────────────────────────────────────────
+Kubernetes-Based Deployment & Monitoring — Online Bookstore     Apr 2026
+Tech: Docker · Kubernetes · Helm · Prometheus · Grafana · Node.js · React · MongoDB
+
+- [Pick 4–6 bullets from the list above]
+
+GitHub: github.com/ADHITHYAAMARAGONDA/BOOK-STORE
+Live: book-store-ziyd.vercel.app
+Keywords to include (for ATS — Applicant Tracking Systems)
+Make sure these exact words appear somewhere in your resume, as they are searched by recruiters and HR software:
+
+Kubernetes Docker Helm Prometheus Grafana PromQL Alertmanager kubectl YAML Container Orchestration Horizontal Pod Autoscaler HPA Self-Healing Microservices REST API JWT
